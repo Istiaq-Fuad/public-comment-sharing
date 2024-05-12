@@ -1,13 +1,13 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { MAX_TEXT_LENGTH } from "../lib/constants";
-import { TFeedbackItem } from "../lib/types";
+import { useFeedbackContext } from "../lib/hooks/useFeedbackContext";
 
 function FeedbackForm() {
   const [feedbackText, setFeedbackText] = useState("");
-  const [textLength, setTextLength] = useState(MAX_TEXT_LENGTH);
   const [validIndicator, setValidIndicator] = useState(false);
   const [InvalidIndicator, setInvalidIndicator] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const { postFeedback } = useFeedbackContext();
 
   const feedbackTextHandler = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     let newText = e.target.value;
@@ -16,57 +16,32 @@ function FeedbackForm() {
 
     if (newText.length <= MAX_TEXT_LENGTH) {
       setFeedbackText(newText);
-      setTextLength(MAX_TEXT_LENGTH - newText.length);
     }
-  };
-
-  const postFeedback = (companyName: string) => {
-    const newFeedback: TFeedbackItem = {
-      id: Date.now().toString(),
-      company: companyName,
-      badgeLetter: companyName[0].toUpperCase(),
-      upvoteCount: 0,
-      daysAgo: 0,
-      text: feedbackText,
-    };
-
-    fetch("http://localhost:3000/feedbacks/", {
-      method: "POST",
-      body: JSON.stringify(newFeedback),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).catch((e) => console.log(e));
-
-    setFeedbackText("");
   };
 
   const formSubmitHandler = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    let text = feedbackText
+    let companyName = feedbackText
       .split(" ")
       .find((t) => t.includes("#"))!
-      .substring(1);
+      .substring(1)
+      .replace(",", "")
+      .replace(".", "");
 
-    text = text.charAt(0).toUpperCase() + text.slice(1);
+    companyName = companyName.charAt(0).toUpperCase() + companyName.slice(1);
 
-    if (text.length > 0 && feedbackText.length > 5) {
+    if (companyName.length > 0 && feedbackText.length > 5) {
       setValidIndicator(true);
       setTimeout(() => setValidIndicator(false), 2000);
-      postFeedback(text);
+      postFeedback(feedbackText, companyName);
     } else {
       setInvalidIndicator(true);
       setTimeout(() => setInvalidIndicator(false), 2000);
     }
-  };
 
-  // const textareaElement = textareaRef.current;
-  // useEffect(() => {
-  //   const listener = (event: KeyboardEvent) => {
-  //     if (event.key === "Enter" && event.metaKey) {
-  //       formSubmitHandler();
-  //     }
+    setFeedbackText("");
+  };
   //   };
   //   if (textareaElement) {
   //     textareaElement.addEventListener("keydown", listener);
@@ -90,12 +65,11 @@ function FeedbackForm() {
       <textarea
         value={feedbackText}
         onChange={feedbackTextHandler}
-        ref={textareaRef}
         placeholder="Enter your feedback here, Remember to #hashtag the company"
       />
       <div className="form-data">
         <button type="submit">submit</button>
-        <p className="word-counter">{textLength}</p>
+        <p className="word-counter">{MAX_TEXT_LENGTH - feedbackText.length}</p>
       </div>
     </form>
   );
