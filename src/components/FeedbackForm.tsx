@@ -22,36 +22,20 @@ function FeedbackForm() {
   const formSubmitHandler = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    let companyName = feedbackText
-      .split(" ")
-      .find((t) => t.includes("#"))!
-      .substring(1)
-      .replace(",", "")
-      .replace(".", "");
+    let companyName = feedbackText.split(" ").find((t) => t.includes("#"));
 
-    companyName = companyName.charAt(0).toUpperCase() + companyName.slice(1);
-
-    if (companyName.length > 0 && feedbackText.length > 5) {
+    if (companyName && companyName.length > 0 && feedbackText.length > 5) {
       setValidIndicator(true);
       setTimeout(() => setValidIndicator(false), 2000);
+      companyName = companyName.slice(1).replace(",", "").replace(".", "");
+      companyName = companyName.charAt(0).toUpperCase() + companyName.slice(1);
       postFeedback(feedbackText, companyName);
+      setFeedbackText("");
     } else {
       setInvalidIndicator(true);
       setTimeout(() => setInvalidIndicator(false), 2000);
     }
-
-    setFeedbackText("");
   };
-  //   };
-  //   if (textareaElement) {
-  //     textareaElement.addEventListener("keydown", listener);
-  //   }
-  //   return () => {
-  //     if (textareaElement) {
-  //       textareaElement.removeEventListener("keydown", listener);
-  //     }
-  //   };
-  // }, [textareaElement, formSubmitHandler]);
 
   return (
     <form
