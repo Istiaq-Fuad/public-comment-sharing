@@ -1,29 +1,10 @@
 import Spinner from "./Spinner";
 import FeedbackItem from "./FeedbackItem";
 import ErrorMessage from "./ErrorMessage";
-import { TFeedbackItem } from "../lib/types";
+import { useFeedbackItemsStore } from "../stores/feedbackItemsStore";
 
-type FeedbackListPropType = {
-  isLoading: boolean;
-  errorMessage: string;
-  feedbackList: TFeedbackItem[];
-  activeCompany: string;
-};
-
-function FeedbackList({
-  isLoading,
-  errorMessage,
-  feedbackList,
-  activeCompany,
-}: FeedbackListPropType) {
-  
-  const filteredFeedback =
-    activeCompany === "All"
-      ? feedbackList
-      : feedbackList.filter(
-          (feedback) =>
-            feedback.company.toLowerCase() === activeCompany.toLowerCase()
-        );
+function FeedbackList() {
+  const { filteredFeedback, isLoading, errorMessage } = useFeedbackItemsStore();
 
   return (
     <div
@@ -33,7 +14,7 @@ function FeedbackList({
     >
       {isLoading && <Spinner />}
       {errorMessage && <ErrorMessage message={errorMessage} />}
-      {filteredFeedback.map((feedback) => {
+      {filteredFeedback().map((feedback) => {
         return <FeedbackItem key={feedback.id} feedback={feedback} />;
       })}
     </div>
